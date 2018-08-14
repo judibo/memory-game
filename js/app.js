@@ -3,13 +3,13 @@
  */
 
 const deck = document.querySelector('.deck');
-let moves = 0;
 let toggledCards = [];
+let moves = 0;
 let clockOff = true;
 let time = 0;
 let clockId;
 let matched = 0;
-const pairs = 8;
+const TOTAL_PAIRS = 8;
 
 /*
  * Display the cards on the page
@@ -17,6 +17,17 @@ const pairs = 8;
  *   - loop through each card and create its HTML
  *   - add each card's HTML to the page
  */
+ function shuffleDeck() {
+	const cardsToShuffle = Array.from(document.querySelectorAll('.deck li'));
+	const shuffledCards = shuffle(cardsToShuffle);
+	for (card of shuffledCards) {
+		card.classList.remove('show');
+        card.classList.remove('open');
+        card.classList.remove('match');
+		deck.appendChild(card);
+	}
+}
+shuffleDeck();
 
 // Shuffle function from http://stackoverflow.com/a/2450976
 function shuffle(array) {
@@ -33,17 +44,7 @@ function shuffle(array) {
     return array;
 }
 
-function shuffleDeck() {
-	const cardsToShuffle = Array.from(document.querySelectorAll('.deck li'));
-	const shuffledCards = shuffle(cardsToShuffle);
-	for (card of shuffledCards) {
-		card.classList.remove('show');
-		card.classList.remove('open');
-		card.classList.remove('match')
-		deck.appendChild(card);
-	}
-}
-shuffleDeck();
+
 
 function isValid(clickTarget) {
 	return (clickTarget.classList.contains('card') && !clickTarget.classList.contains('match') && toggledCards.length < 2 && !toggledCards.includes(clickTarget));
@@ -61,7 +62,7 @@ deck.addEventListener('click', event => {
 		addMove();
 		checkScore();
 		if (toggledCards.length === 2) {
-			checkIfMatch(clickTarget);
+			checkForMatch(clickTarget);
 		}
 
 	}
@@ -80,13 +81,17 @@ function addToggleCard(clickTarget) {
 }
 
 //See if cards match
-function checkIfMatch() {
+function checkForMatch() {
 	if (
 		toggledCards[0].firstElementChild.className === toggledCards[1].firstElementChild.className ) {
 		toggledCards[0].classList.toggle('match');
 		toggledCards[1].classList.toggle('match');
 		toggledCards = [];
 		matched++;
+		//once 8 matches are over run function gameOver
+        if (matched === 8) {
+            gameOver();
+        } 
 	} else {
 		setTimeout(() => {
 			toggleCard(toggledCards[0]);
@@ -103,7 +108,7 @@ function addMove() {
 	movesText.innerHTML = moves;
 }
 
-//stars bases on move count
+//stars based on move count
 function checkScore() {
 	if (moves === 14 || moves === 20) {
 		hideStar();
@@ -151,6 +156,8 @@ function toggleModal() {
 	const modal = document.querySelector('.modal__background');
 	modal.classList.toggle('hide');
 }
+toggleModal() //open modal
+toggleModal() //close modal
 
 
 function writeModalStats() {
@@ -159,6 +166,7 @@ function writeModalStats() {
 	const movesStat = document.querySelector('.modal__moves');
 	const starsStat = document.querySelector('.modal__stars');
 	const stars = getStars();
+
 	timeStat.innerHTML= `Time = ${clockTime}`;
 	movesStat.innerHTML = `Moves = ${moves}`;
 	starsStat.innerHTML = `Stars = ${stars}`;
@@ -176,20 +184,19 @@ function getStars() {
 	return starCount;
 }
 
-
-document.querySelector('.modal__cancel').addEventListener('click', toggleModal);
-document.querySelector('.restart').addEventListener('click', resetGame);
+//modal buttons
+document.querySelector('.modal__cancel').addEventListener('click', () => {
+	toggleModal();
+});
 document.querySelector('.modal__replay').addEventListener('click', replayGame);
-
+document.querySelector('.restart').addEventListener('click', resetGame);
 
 
 function resetGame() {
 	resetClockAndTime();
 	resetMoves();
 	resetStars();
-	resetCards();
 	shuffleDeck();
-
 }
 
 function resetClockAndTime() {
@@ -206,19 +213,12 @@ function resetMoves() {
 
 function resetStars() {
 	stars = 0;
-	const starList = document.querySelector('.star li');
-	for (star of starsList) {
+	const starList = document.querySelectorAll('.stars li');
+	for (star of starList) {
 		star.style.display = 'inline';
 	}
 }
 
-function resetCards() {
-	const cards = document.querySelectorAll('.deck li');
-	for (let card of cards) {
-		card.className = 'card';
-	}
-
-}
 
 function replayGame() {
 	resetGame();
@@ -226,15 +226,14 @@ function replayGame() {
 }
 
 
-function checkWin() {
-	if (matched === pairs) {
-		gameOver();
-	}
+if (matched === TOTAL_PAIRS) {
+	gameOver();
 }
+
 
 function gameOver() {
 	stopClock();
-	writeModalStats();
 	toggleModal();
+	writeModalStats();
 }
 
