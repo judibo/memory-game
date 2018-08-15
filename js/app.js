@@ -1,7 +1,7 @@
 /*
  * Create a list that holds all of your cards
  */
-
+//global variables
 const deck = document.querySelector('.deck');
 let toggledCards = [];
 let moves = 0;
